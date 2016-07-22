@@ -1,0 +1,11 @@
+<ion-view>
+  <ion-content>
+    <ion-buttons side="primary">
+        <button class="button" ng-click="addImage()">
+          prendre une Photo
+        </button>
+    </ion-buttons>
+    <br><br>
+	     <img ng-repeat="image in images" ng-src="{{urlForImage(image)}}" height="200px"/>
+  </ion-content>
+</ion-view>
