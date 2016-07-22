@@ -91,11 +91,12 @@ angular.module('starter.controllers', [])
 })
 
 .controller('MapCtrl', function($scope, $state, $cordovaGeolocation) {
-  var options = {timeout: 10000, enableHighAccuracy: true};
+  var options = { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true };
 
   $cordovaGeolocation.getCurrentPosition(options).then(function(position){
 
     var latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+    var PjislatLng = new google.maps.LatLng(position.coords.latitude + 0.0005, position.coords.longitude + 0.0005);
 
     var mapOptions = {
       center: latLng,
@@ -105,13 +106,39 @@ angular.module('starter.controllers', [])
 
     $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
 
-    var marker = new google.maps.Marker({
-      map: $scope.map,
-      animation: google.maps.Animation.DROP,
-      position: latLng
-  });
+    google.maps.event.addListenerOnce($scope.map, 'idle', function(){
+
+      $scope.marker = new google.maps.Marker({
+        map: $scope.map,
+        animation: google.maps.Animation.DROP,
+        position: latLng,
+        icon : "../img/man.png"
+        });
+    });
+
+    var PjisImage = "../img/pjis.png";
+
+  var PJISmarker = new google.maps.Marker({
+    map: $scope.map,
+    position: PjislatLng,
+    icon : PjisImage
+});
+
 
   }, function(error){
     console.log("Could not get location");
   });
+
+
+$cordovaGeolocation.watchPosition().then(function(position){
+
+  var latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+  $scope.marker = new google.maps.Marker({
+    map: $scope.map,
+    position: latLng,
+    icon : "../img/man.png"
+    });
+  });
+
 });
