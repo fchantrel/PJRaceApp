@@ -32,6 +32,16 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova'])
     controller: 'AppCtrl'
   })
 
+  .state('app.photo', {
+    url: '/photo',
+    views: {
+      'menuContent': {
+        templateUrl: 'templates/photo.html',
+        controller: 'PhotoCtrl'
+      }
+    }
+  })
+
   .state('app.map', {
     url: '/map',
     views: {
