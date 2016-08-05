@@ -82,6 +82,54 @@ angular.module('starter.controllers', [])
     };
 })
 
+.service('LoginMdpService', function($q) {
+    return {
+
+        loginUser: function(name, pw) {
+            var deferred = $q.defer();
+            var promise = deferred.promise;
+ 
+            if (name == 'pseudo' && pw == 'secret') {
+                //window.localStorage.setItem("username", username);
+                //window.localStorage.setItem("password", password);
+                deferred.resolve('Welcome ' + name + '!');
+            } else {
+                deferred.reject('Wrong credentials.');
+            }
+            promise.success = function(fn) {
+                promise.then(fn);
+                return promise;
+            }
+            promise.error = function(fn) {
+                promise.then(null, fn);
+                return promise;
+            }
+            return promise;
+        }
+    }
+})
+
+.controller('LoginMdpCtrl', function($scope, LoginMdpService, $ionicPopup, $state) {
+
+    console.log('on passe dans LoginMdpCtrl');
+
+    $scope.data = {};
+    $scope.data.username = "pseudo";
+    $scope.data.password = "secret";
+ 
+    $scope.login = function() {
+        console.log("LOGIN user: " + $scope.data.username + " - PW: " + $scope.data.password);
+        LoginMdpService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
+            $state.go('app.map');
+        }).error(function(data) {
+            var alertPopup = $ionicPopup.alert({
+                title: 'Identification incorrecte ...',
+                template: 'Vérifier vos données !'
+            });
+        });
+    }
+})
+
 .controller('MapCtrl', function($scope, $state, $cordovaGeolocation) {
     var options = { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true };
 

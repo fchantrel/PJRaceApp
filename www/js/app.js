@@ -22,7 +22,10 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova'])
   });
 })
 
-.config(function($stateProvider, $urlRouterProvider) {
+.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+
+  delete $httpProvider.defaults.headers.common['X-Requested-With'];
+
   $stateProvider
 
     .state('app', {
@@ -30,6 +33,16 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova'])
     abstract: true,
     templateUrl: 'templates/menu.html',
     controller: 'AppCtrl'
+  })
+
+  .state('app.loginmdp', {
+      url: '/loginmdp',
+    views: {
+      'menuContent': {
+        templateUrl: 'templates/loginmdp.html',
+        controller: 'LoginMdpCtrl'
+      }
+    }
   })
 
   .state('app.photo', {
@@ -53,5 +66,5 @@ angular.module('starter', ['ionic', 'starter.controllers', 'ngCordova'])
   });
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/app/map');
+  $urlRouterProvider.otherwise('/app/loginmdp');
 });
