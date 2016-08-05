@@ -111,8 +111,6 @@ angular.module('starter.controllers', [])
 
 .controller('LoginMdpCtrl', function($scope, LoginMdpService, $ionicPopup, $state) {
 
-    console.log('on passe dans LoginMdpCtrl');
-
     $scope.data = {};
     $scope.data.username = "pseudo";
     $scope.data.password = "secret";
