@@ -14,131 +14,117 @@ angular.module('starter.controllers', [])
 })
 
 .controller('PhotoCtrl', function($scope, $cordovaCamera, $cordovaFile) {
-  // 1
-  $scope.images = [];
+    $scope.images = [];
 
-  $scope.addImage = function() {
-  	// 2
-  	var options = {
-  		destinationType : Camera.DestinationType.FILE_URI,
-  		sourceType : Camera.PictureSourceType.CAMERA, // Camera.PictureSourceType.PHOTOLIBRARY
-  		allowEdit : false,
-  		encodingType: Camera.EncodingType.JPEG,
-  		popoverOptions: CameraPopoverOptions,
-  	};
+    $scope.addImage = function() {
+        var options = {
+            destinationType : Camera.DestinationType.FILE_URI,
+            sourceType : Camera.PictureSourceType.CAMERA, // Camera.PictureSourceType.PHOTOLIBRARY
+            allowEdit : false,
+            encodingType: Camera.EncodingType.JPEG,
+            popoverOptions: CameraPopoverOptions,
+        };
 
-  	// 3
-  	$cordovaCamera.getPicture(options).then(function(imageData) {
+        $cordovaCamera.getPicture(options).then(function(imageData) {
+            onImageSuccess(imageData);
 
-  		// 4
-  		onImageSuccess(imageData);
+            function onImageSuccess(fileURI) {
+                createFileEntry(fileURI);
+            }
 
-  		function onImageSuccess(fileURI) {
-  			createFileEntry(fileURI);
-  		}
+            function createFileEntry(fileURI) {
+                window.resolveLocalFileSystemURL(fileURI, copyFile, fail);
+            }
 
-  		function createFileEntry(fileURI) {
-  			window.resolveLocalFileSystemURL(fileURI, copyFile, fail);
-  		}
+            function copyFile(fileEntry) {
+                var name = fileEntry.fullPath.substr(fileEntry.fullPath.lastIndexOf('/') + 1);
+                var newName = makeid() + name;
 
-  		// 5
-  		function copyFile(fileEntry) {
-  			var name = fileEntry.fullPath.substr(fileEntry.fullPath.lastIndexOf('/') + 1);
-  			var newName = makeid() + name;
+                window.resolveLocalFileSystemURL(cordova.file.dataDirectory, function(fileSystem2) {
+                    fileEntry.copyTo(
+                        fileSystem2,
+                        newName,
+                        onCopySuccess,
+                        fail
+                    );
+                }, fail);
+            }
 
-  			window.resolveLocalFileSystemURL(cordova.file.dataDirectory, function(fileSystem2) {
-  				fileEntry.copyTo(
-  					fileSystem2,
-  					newName,
-  					onCopySuccess,
-  					fail
-  				);
-  			},
-  			fail);
-  		}
+            function onCopySuccess(entry) {
+                $scope.$apply(function () {
+                    $scope.images[0] = entry.nativeURL;
+                });
+            }
 
-  		// 6
-  		function onCopySuccess(entry) {
-  			$scope.$apply(function () {
-  				$scope.images[0] = entry.nativeURL;
-  			});
-  		}
+            function fail(error) {
+                console.log("fail: " + error.code);
+            }
 
-  		function fail(error) {
-  			console.log("fail: " + error.code);
-  		}
+            function makeid() {
+                var text = "";
+                var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-  		function makeid() {
-  			var text = "";
-  			var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                for (var i=0; i < 5; i++) {
+                    text += possible.charAt(Math.floor(Math.random() * possible.length));
+                }
+                return text;
+            }
 
-  			for (var i=0; i < 5; i++) {
-  				text += possible.charAt(Math.floor(Math.random() * possible.length));
-  			}
-  			return text;
-  		}
-
-  	}, function(err) {
-  		console.log(err);
-  	});
-  }
+        }, function(err) {
+            console.log(err);
+        });
+    };
 
     $scope.urlForImage = function(imageName) {
-      var name = imageName.substr(imageName.lastIndexOf('/') + 1);
-      var trueOrigin = cordova.file.dataDirectory + name;
-      return trueOrigin;
-    }
+        var name = imageName.substr(imageName.lastIndexOf('/') + 1);
+        var trueOrigin = cordova.file.dataDirectory + name;
+        return trueOrigin;
+    };
 })
 
 .controller('MapCtrl', function($scope, $state, $cordovaGeolocation) {
-  var options = { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true };
+    var options = { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true };
 
-  $cordovaGeolocation.getCurrentPosition(options).then(function(position){
+    $cordovaGeolocation.getCurrentPosition(options).then(function(position){
+        var latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        var PjislatLng = new google.maps.LatLng(position.coords.latitude + 0.0005, position.coords.longitude + 0.0005);
 
-    var latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-    var PjislatLng = new google.maps.LatLng(position.coords.latitude + 0.0005, position.coords.longitude + 0.0005);
+        var mapOptions = {
+          center: latLng,
+          zoom: 15,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
 
-    var mapOptions = {
-      center: latLng,
-      zoom: 15,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
+        $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
 
-    $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+        google.maps.event.addListenerOnce($scope.map, 'idle', function(){
+            $scope.marker = new google.maps.Marker({
+                map: $scope.map,
+                animation: google.maps.Animation.DROP,
+                position: latLng,
+                icon : "../img/man.png"
+            });
+        });
 
-    google.maps.event.addListenerOnce($scope.map, 'idle', function(){
+        var PjisImage = "../img/pjis.png";
+        var PJISmarker = new google.maps.Marker({
+            map: $scope.map,
+            position: PjislatLng,
+            icon : PjisImage
+        });
+    }, function(error){
+        console.log("Could not get location");
+        console.log(error);
+    });
 
-      $scope.marker = new google.maps.Marker({
-        map: $scope.map,
-        animation: google.maps.Animation.DROP,
-        position: latLng,
-        icon : "../img/man.png"
+    $cordovaGeolocation.watchPosition().then(function(position){
+
+        var latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+        $scope.marker = new google.maps.Marker({
+            map: $scope.map,
+            position: latLng,
+            icon : "../img/man.png"
         });
     });
-
-    var PjisImage = "../img/pjis.png";
-
-  var PJISmarker = new google.maps.Marker({
-    map: $scope.map,
-    position: PjislatLng,
-    icon : PjisImage
-});
-
-
-  }, function(error){
-    console.log("Could not get location");
-  });
-
-
-$cordovaGeolocation.watchPosition().then(function(position){
-
-  var latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-
-  $scope.marker = new google.maps.Marker({
-    map: $scope.map,
-    position: latLng,
-    icon : "../img/man.png"
-    });
-  });
-
 });
